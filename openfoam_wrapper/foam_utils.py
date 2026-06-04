@@ -8,6 +8,10 @@ import threading
 from pathlib import Path
 from typing import Dict, Any, Callable, Optional
 import shutil
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class OpenFOAMCase:
@@ -23,6 +27,8 @@ class OpenFOAMCase:
         self.case_dir = Path(case_dir)
         self.templates_dir = Path(__file__).parent / "templates"
         self.output_callback = None
+        logger.info(f"OpenFOAMCase initialized with case_dir: {self.case_dir}")
+        logger.debug(f"Templates directory: {self.templates_dir}")
     
     def create_case_structure(self) -> bool:
         """
@@ -32,16 +38,21 @@ class OpenFOAMCase:
             True if successful, False otherwise
         """
         try:
+            logger.info(f"Creating case structure in {self.case_dir}")
             # Create subdirectories
             subdirs = ["0", "constant", "system"]
             for subdir in subdirs:
                 (self.case_dir / subdir).mkdir(parents=True, exist_ok=True)
+                logger.debug(f"Created directory: {subdir}")
             
             # Create polyMesh subdirectory
             (self.case_dir / "constant" / "polyMesh").mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created directory: constant/polyMesh")
             
+            logger.info("Case structure created successfully")
             return True
         except Exception as e:
+            logger.error(f"Error creating case structure: {e}")
             self._log(f"Error creating case structure: {e}")
             return False
     
@@ -57,6 +68,7 @@ class OpenFOAMCase:
             True if successful, False otherwise
         """
         try:
+            logger.info("Starting dictionary generation")
             # Generate controlDict
             self._generate_control_dict(config)
             
@@ -72,6 +84,9 @@ class OpenFOAMCase:
             # Generate transportProperties
             self._generate_transport_properties(config)
             
+            # Generate turbulenceProperties
+            self._generate_turbulence_properties(config)
+            
             return True
         except Exception as e:
             self._log(f"Error generating dictionaries: {e}")
@@ -81,6 +96,10 @@ class OpenFOAMCase:
         """Generate system/controlDict from template."""
         template_file = self.templates_dir / "controlDict.template"
         target_file = self.case_dir / "system" / "controlDict"
+        
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
         
         with open(template_file, "r") as f:
             content = f.read()
@@ -101,6 +120,10 @@ class OpenFOAMCase:
         template_file = self.templates_dir / "fvSchemes.template"
         target_file = self.case_dir / "system" / "fvSchemes"
         
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
         with open(template_file, "r") as f:
             content = f.read()
         
@@ -114,6 +137,10 @@ class OpenFOAMCase:
         """Generate system/fvSolution from template."""
         template_file = self.templates_dir / "fvSolution.template"
         target_file = self.case_dir / "system" / "fvSolution"
+        
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
         
         with open(template_file, "r") as f:
             content = f.read()
@@ -148,6 +175,10 @@ class OpenFOAMCase:
         """Generate 0/U boundary conditions."""
         template_file = self.templates_dir / "U.template"
         target_file = self.case_dir / "0" / "U"
+        
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
         
         with open(template_file, "r") as f:
             content = f.read()
@@ -201,6 +232,10 @@ class OpenFOAMCase:
         template_file = self.templates_dir / "p.template"
         target_file = self.case_dir / "0" / "p"
         
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
         with open(template_file, "r") as f:
             content = f.read()
         
@@ -250,6 +285,10 @@ class OpenFOAMCase:
         template_file = self.templates_dir / "k.template"
         target_file = self.case_dir / "0" / "k"
         
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
         with open(template_file, "r") as f:
             content = f.read()
         
@@ -293,6 +332,10 @@ class OpenFOAMCase:
         """Generate 0/omega boundary conditions (specific dissipation rate)."""
         template_file = self.templates_dir / "omega.template"
         target_file = self.case_dir / "0" / "omega"
+        
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
         
         with open(template_file, "r") as f:
             content = f.read()
@@ -338,6 +381,10 @@ class OpenFOAMCase:
         template_file = self.templates_dir / "nut.template"
         target_file = self.case_dir / "0" / "nut"
         
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
         with open(template_file, "r") as f:
             content = f.read()
         
@@ -381,12 +428,37 @@ class OpenFOAMCase:
         template_file = self.templates_dir / "transportProperties.template"
         target_file = self.case_dir / "constant" / "transportProperties"
         
+        if not template_file.exists():
+            self._log(f"Error: Template file not found: {template_file}")
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
         with open(template_file, "r") as f:
             content = f.read()
         
         # Replace physical properties
         nu = config.get("nu", 1.5e-05)
         content = content.replace("#NU#", str(nu))
+        
+        with open(target_file, "w") as f:
+            f.write(content)
+        
+        self._log(f"Generated: {target_file}")
+    
+    def _generate_turbulence_properties(self, config: Dict[str, Any]) -> None:
+        """Generate constant/turbulenceProperties."""
+        template_file = self.templates_dir / "turbulenceProperties.template"
+        target_file = self.case_dir / "constant" / "turbulenceProperties"
+        
+        if not template_file.exists():
+            self._log(f"Warning: Template file not found: {template_file}. Skipping turbulenceProperties generation.")
+            return
+        
+        with open(template_file, "r") as f:
+            content = f.read()
+        
+        # Replace turbulence model
+        turbulence_model = config.get("turbulenceModel", "kOmegaSST")
+        content = content.replace("#TURBULENCE_MODEL#", turbulence_model)
         
         with open(target_file, "w") as f:
             f.write(content)
@@ -412,36 +484,91 @@ class OpenFOAMCase:
         thread.start()
     
     def _run_solver_thread(self, solver: str) -> None:
-        """Execute solver in a thread."""
+        """Execute full CFD simulation pipeline."""
         try:
-            self._log(f"Starting solver: {solver}")
+            commands = [
+                ("foamCleanPolyMesh", [], None),
+                ("blockMesh", [], "logBMesh.foam"),
+                ("surfaceFeatureExtract", [], "logSFE.foam"),
+                ("decomposePar", [], "logDeco1.foam"),
+                ("snappyHexMesh", ["-parallel", "-overwrite"], "logSnappy.foam"),
+                ("reconstructParMesh", ["-constant"], "logReco1.foam"),
+                ("checkMesh", [], "logCheckMesh.foam"),
+                ("decomposePar", ["-force"], "logDeco2.foam"),
+                ("simpleFoam", ["-parallel"], "logSFoam.foam"),
+                ("reconstructPar", [], "logReco2.foam"),
+            ]
             
-            process = subprocess.Popen(
-                [solver],
-                cwd=str(self.case_dir),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1
-            )
+            for cmd_name, args, log_file in commands:
+                self._execute_command(cmd_name, args, log_file)
             
-            # Stream output line by line
-            for line in iter(process.stdout.readline, ""):
-                if line:
-                    self._log(line.rstrip())
-            
-            process.wait()
-            
-            if process.returncode == 0:
-                self._log("Solver completed successfully!")
-            else:
-                self._log(f"Solver exited with code: {process.returncode}")
+            self._log("CFD simulation pipeline completed successfully!")
         
         except Exception as e:
-            self._log(f"Error running solver: {e}")
+            self._log(f"Error in simulation pipeline: {e}")
+    
+    def _execute_command(self, cmd_name: str, args: list, log_file: Optional[str]) -> None:
+        """Execute a single OpenFOAM command."""
+        # Verify command exists in PATH
+        cmd_path = shutil.which(cmd_name)
+        if not cmd_path:
+            error_msg = f"Error: Command '{cmd_name}' not found in PATH"
+            self._log(error_msg)
+            raise FileNotFoundError(error_msg)
+        
+        self._log(f"Running: {cmd_name} {' '.join(args)}")
+        
+        # Build command for execution
+        if cmd_name in ["snappyHexMesh", "simpleFoam"] and "-parallel" in args:
+            # Use mpirun for parallel execution
+            cmd = ["mpirun", "-np", "6", cmd_path] + args
+        else:
+            cmd = [cmd_path] + args
+        
+        try:
+            if log_file:
+                # Run with output redirect to file
+                log_path = self.case_dir / log_file
+                with open(log_path, "w") as f:
+                    process = subprocess.Popen(
+                        cmd,
+                        cwd=str(self.case_dir),
+                        stdout=f,
+                        stderr=subprocess.STDOUT,
+                        text=True
+                    )
+                    process.wait()
+            else:
+                # Stream output to console
+                process = subprocess.Popen(
+                    cmd,
+                    cwd=str(self.case_dir),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1
+                )
+                
+                for line in iter(process.stdout.readline, ""):
+                    if line:
+                        self._log(line.rstrip())
+                
+                process.wait()
+            
+            if process.returncode == 0:
+                self._log(f"✓ {cmd_name} completed")
+            else:
+                error_msg = f"Error: {cmd_name} exited with code {process.returncode}"
+                self._log(error_msg)
+                raise RuntimeError(error_msg)
+        
+        except Exception as e:
+            self._log(f"Error executing {cmd_name}: {e}")
+            raise
     
     def _log(self, message: str) -> None:
         """Log a message, optionally via callback."""
+        logger.info(message)
         print(message)
         if self.output_callback:
             self.output_callback(message)

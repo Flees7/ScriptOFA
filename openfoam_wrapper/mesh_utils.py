@@ -3,10 +3,20 @@ Mesh utilities for STL import, surface splitting, and PyVista visualization.
 Handles auto-segmentation of STL files into distinct clickable patches.
 """
 
+import os
+import warnings
 from pathlib import Path
 from typing import Dict, List, Tuple
+
+# Suppress VTK warnings early
+os.environ['VTK_SUPPRESS_WARNINGS'] = '1'
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
 import pyvista as pv
 from pyvista import Plotter
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MeshManager:
@@ -14,11 +24,13 @@ class MeshManager:
     
     def __init__(self):
         """Initialize the mesh manager."""
+        logger.info("Initializing MeshManager")
         self.original_mesh = None
         self.separated_surfaces = None
         self.patch_assignments = {}  # {patch_name: boundary_type}
         self.patch_colors = {}  # {patch_name: color}
         self.patch_selection_callbacks = []
+        logger.debug("MeshManager initialized")
     
     def load_stl(self, file_path: Path) -> bool:
         """
@@ -31,23 +43,35 @@ class MeshManager:
             True if successful, False otherwise
         """
         try:
+            logger.info(f"Loading STL file: {file_path}")
             # Load the raw STL mesh
             self.original_mesh = pv.read(str(file_path))
+            logger.debug(f"STL loaded, mesh has {self.original_mesh.n_cells} cells")
             
             # Extract surface and split based on connectivity
             # This identifies distinct patches automatically
-            self.separated_surfaces = self.original_mesh.extract_surface().split_bodies()
+            logger.info("Extracting surface and splitting bodies")
+            split_result = self.original_mesh.extract_surface().split_bodies()
             
+            # Handle both list and MultiBlock returns from split_bodies()
+            if isinstance(split_result, list):
+                self.separated_surfaces = split_result
+            else:
+                # Convert MultiBlock to list for consistent indexing
+                self.separated_surfaces = [split_result[i] for i in range(len(split_result))]
+            
+            logger.info(f"Identified {len(self.separated_surfaces)} patches")
             # Initialize patch tracking
             for i, patch in enumerate(self.separated_surfaces):
                 patch_name = f"patch_{i}"
                 self.patch_assignments[patch_name] = "unassigned"
                 self.patch_colors[patch_name] = (0.5, 0.5, 0.5)  # Default gray
+                logger.debug(f"Initialized patch: {patch_name}")
             
+            logger.info("STL file processed successfully")
             return True
         except Exception as e:
-            print(f"Error loading STL file: {e}")
-            return False
+            logger.error(f"Error loading STL file: {e}")
     
     def get_patches(self) -> Dict[str, str]:
         """
@@ -133,17 +157,28 @@ class MeshManager:
             Handler function for click events
         """
         def pick_handler(click_pos):
-            """Handle mesh picking."""
+            """Handle mesh picking with ray casting."""
             if self.separated_surfaces is None:
                 return
             
-            # Find which patch was clicked by ray casting
-            for i, patch in enumerate(self.separated_surfaces):
-                selection = patch.pick(click_pos, tolerance=1e-6)
-                if selection is not None and selection.n_cells > 0:
+            try:
+                # Get picked actor from the plotter renderer
+                picked_actor = plotter.renderer.pick_prop(click_pos[0], click_pos[1])
+                
+                if picked_actor is None:
+                    return
+                
+                # Find which patch was clicked by matching with actors
+                for i, patch in enumerate(self.separated_surfaces):
                     patch_name = f"patch_{i}"
-                    callback(patch_name, click_pos)
-                    break
+                    # Check if this patch's actor matches the picked actor
+                    if patch_name in plotter.renderer.actors:
+                        actor = plotter.renderer.actors[patch_name]
+                        if actor == picked_actor:
+                            callback(patch_name, click_pos)
+                            break
+            except Exception as e:
+                print(f"Error in picking handler: {e}")
         
         return pick_handler
     

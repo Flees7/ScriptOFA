@@ -3,9 +3,16 @@ PyQt6 GUI for OpenFOAM wrapper.
 Manages UI layout, widget interactions, and integration of mesh/foam utilities.
 """
 
+import os
+import warnings
 from pathlib import Path
 from typing import Optional, Dict
 import threading
+import logging
+
+# Suppress VTK warnings early
+os.environ['VTK_SUPPRESS_WARNINGS'] = '1'
+warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QGroupBox,
@@ -17,6 +24,8 @@ from pyvistaqt import QtInteractor
 
 from mesh_utils import MeshManager
 from foam_utils import OpenFOAMCase
+
+logger = logging.getLogger(__name__)
 
 
 class SolverThread(QThread):
@@ -35,7 +44,8 @@ class SolverThread(QThread):
         """Execute solver in thread."""
         try:
             self.case.output_callback = self.output_signal.emit
-            self.case.run_solver_async(self.solver, self.output_signal.emit)
+            # Call _run_solver_thread directly instead of run_solver_async to avoid nested threading
+            self.case._run_solver_thread(self.solver)
             self.finished_signal.emit()
         except Exception as e:
             self.error_signal.emit(str(e))
@@ -89,8 +99,12 @@ class BoundaryConditionDialog(QDialog):
 class OpenFOAMWrapperApp(QMainWindow):
     """Main application window for OpenFOAM GUI wrapper."""
     
+    # Signal for thread-safe logging
+    log_signal = pyqtSignal(str)
+    
     def __init__(self):
         super().__init__()
+        logger.info("Initializing OpenFOAMWrapperApp")
         self.setWindowTitle("OpenFOAM GUI Wrapper")
         self.setGeometry(100, 100, 1400, 900)
         
@@ -102,6 +116,10 @@ class OpenFOAMWrapperApp(QMainWindow):
         
         # Initialize UI
         self.init_ui()
+        
+        # Connect log signal to slot
+        self.log_signal.connect(self._append_log)
+        logger.info("OpenFOAMWrapperApp initialized")
     
     def init_ui(self):
         """Initialize the main UI layout."""
@@ -268,15 +286,18 @@ class OpenFOAMWrapperApp(QMainWindow):
     
     def new_case(self):
         """Create a new OpenFOAM case."""
+        logger.info("new_case called")
         # Select case directory
         case_dir = QFileDialog.getExistingDirectory(
             self, "Select Case Directory", str(Path.home())
         )
         
         if not case_dir:
+            logger.info("new_case cancelled by user")
             return
         
         case_dir = Path(case_dir)
+        logger.info(f"Creating new case at: {case_dir}")
         self.case_dir = case_dir
         self.case_dir_label.setText(str(case_dir))
         
@@ -285,13 +306,17 @@ class OpenFOAMWrapperApp(QMainWindow):
         
         # Create basic structure
         if self.case.create_case_structure():
+            logger.info(f"Case created successfully at: {case_dir}")
             self.log_output(f"Case created at: {case_dir}")
         else:
+            logger.error("Failed to create case structure")
             QMessageBox.critical(self, "Error", "Failed to create case structure")
     
     def load_stl(self):
         """Load an STL file."""
+        logger.info("load_stl called")
         if not self.case_dir:
+            logger.warning("load_stl: case_dir not set")
             QMessageBox.warning(self, "Warning", "Please create a case first")
             return
         
@@ -300,32 +325,36 @@ class OpenFOAMWrapperApp(QMainWindow):
         )
         
         if not file_path:
+            logger.info("load_stl cancelled by user")
             return
         
+        logger.info(f"Loading STL file: {file_path}")
         # Load mesh
         if self.mesh_manager.load_stl(Path(file_path)):
+            logger.info(f"STL loaded successfully: {file_path}")
             self.log_output(f"STL loaded: {file_path}")
             
             # Update patches display
             patches = self.mesh_manager.get_patches()
+            logger.debug(f"Detected {len(patches)} patches")
             self.patches_label.setText(f"{len(patches)} patches detected")
             
             # Visualize
             self.visualize_mesh()
         else:
+            logger.error(f"Failed to load STL file: {file_path}")
             QMessageBox.critical(self, "Error", "Failed to load STL file")
     
     def visualize_mesh(self):
         """Visualize the mesh in PyVista."""
-        # Clear previous visualization
-        self.plotter.clear()
+        # Remove all previous actors from the plotter
+        for actor in list(self.plotter.actors.values()):
+            self.plotter.remove_actor(actor)
         
-        # Create visualization with picking
-        plotter = self.mesh_manager.create_visualization(
-            picker_callback=self.on_patch_picked
-        )
+        # Reset renderer if needed
+        self.plotter.renderer.clear_all()
         
-        # Get actors from the temporary plotter and add to main plotter
+        # Add each patch with its assigned color and enable picking
         if self.mesh_manager.separated_surfaces:
             for i, patch in enumerate(self.mesh_manager.separated_surfaces):
                 patch_name = f"patch_{i}"
@@ -338,9 +367,16 @@ class OpenFOAMWrapperApp(QMainWindow):
                     show_edges=True,
                     opacity=0.9
                 )
+            
+            # Setup picking callback for all patches
+            self.plotter.track_click_position(
+                callback=self.mesh_manager._handle_pick(self.on_patch_picked, self.plotter),
+                side="left"
+            )
         
         self.plotter.view_isometric()
         self.plotter.reset_camera()
+        self.plotter.render()
     
     def on_patch_picked(self, patch_name: str, coordinates):
         """Handle patch selection."""
@@ -358,10 +394,13 @@ class OpenFOAMWrapperApp(QMainWindow):
     
     def generate_case(self):
         """Generate OpenFOAM dictionaries."""
+        logger.info("generate_case called")
         if not self.case:
+            logger.warning("generate_case: case not initialized")
             QMessageBox.warning(self, "Warning", "Please create a case first")
             return
         
+        logger.info("Collecting configuration from GUI")
         # Get current configuration
         config = {
             "solver": self.solver_combo.currentText(),
@@ -374,32 +413,42 @@ class OpenFOAMWrapperApp(QMainWindow):
             "omega_inlet": self.omega_inlet_spin.value(),
             "turbulenceModel": "kOmegaSST"
         }
+        logger.debug(f"Configuration: {config}")
         
         # Get patch assignments
         patch_info = self.mesh_manager.export_patch_info()
+        logger.debug(f"Patch info: {patch_info}")
         
         if not patch_info:
+            logger.warning("generate_case: no patch assignments")
             QMessageBox.warning(self, "Warning", "Please assign boundary conditions to all patches")
             return
         
+        logger.info("Generating case dictionaries")
         # Generate dictionaries
         if self.case.generate_dictionaries(config, patch_info):
+            logger.info("Case dictionaries generated successfully")
             self.log_output("Case dictionaries generated successfully!")
             QMessageBox.information(self, "Success", "Case generated successfully!")
         else:
+            logger.error("Failed to generate case dictionaries")
             QMessageBox.critical(self, "Error", "Failed to generate case dictionaries")
     
     def run_solver(self):
         """Run the OpenFOAM solver."""
+        logger.info("run_solver called")
         if not self.case:
+            logger.warning("run_solver: case not initialized")
             QMessageBox.warning(self, "Warning", "Please create and generate a case first")
             return
         
+        logger.info("Starting CFD simulation pipeline")
         # Disable run button during execution
         self.run_btn.setEnabled(False)
         
         # Start solver in thread
         solver = self.solver_combo.currentText()
+        logger.debug(f"Selected solver: {solver}")
         self.solver_thread = SolverThread(self.case, solver)
         self.solver_thread.output_signal.connect(self.log_output)
         self.solver_thread.finished_signal.connect(self.on_solver_finished)
@@ -418,7 +467,11 @@ class OpenFOAMWrapperApp(QMainWindow):
         QMessageBox.critical(self, "Solver Error", error_msg)
     
     def log_output(self, message: str):
-        """Add message to console output."""
+        """Add message to console output (thread-safe via signal)."""
+        self.log_signal.emit(message)
+    
+    def _append_log(self, message: str):
+        """Actually append log message to console (runs on GUI thread)."""
         self.console_text.append(message)
         # Auto-scroll to bottom
         scrollbar = self.console_text.verticalScrollBar()

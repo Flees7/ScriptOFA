@@ -1,0 +1,158 @@
+2026-06-04 18:18:33,273 - __main__ - INFO - ================================================================================
+2026-06-04 18:18:33,273 - __main__ - INFO - OpenFOAM GUI Wrapper Started
+2026-06-04 18:18:33,275 - __main__ - INFO - ================================================================================
+2026-06-04 18:18:33,275 - __main__ - INFO - Log file: logs\foam_wrapper.log
+2026-06-04 18:18:33,275 - __main__ - INFO - Initializing QApplication
+2026-06-04 18:18:33,314 - __main__ - INFO - Creating main window
+2026-06-04 18:18:33,314 - gui - INFO - Initializing OpenFOAMWrapperApp
+2026-06-04 18:18:33,314 - mesh_utils - INFO - Initializing MeshManager
+2026-06-04 18:18:33,314 - mesh_utils - DEBUG - MeshManager initialized
+2026-06-04 18:18:33,965 - gui - INFO - OpenFOAMWrapperApp initialized
+2026-06-04 18:18:34,026 - __main__ - INFO - Running application
+2026-06-04 18:20:20,466 - __main__ - INFO - ================================================================================
+2026-06-04 18:20:20,466 - __main__ - INFO - OpenFOAM GUI Wrapper Started
+2026-06-04 18:20:20,466 - __main__ - INFO - ================================================================================
+2026-06-04 18:20:20,466 - __main__ - INFO - Log file: logs\foam_wrapper.log
+2026-06-04 18:20:20,466 - __main__ - INFO - Initializing QApplication
+2026-06-04 18:20:20,504 - __main__ - INFO - Creating main window
+2026-06-04 18:20:20,504 - gui - INFO - Initializing OpenFOAMWrapperApp
+2026-06-04 18:20:20,506 - mesh_utils - INFO - Initializing MeshManager
+2026-06-04 18:20:20,506 - mesh_utils - DEBUG - MeshManager initialized
+2026-06-04 18:20:20,983 - gui - INFO - OpenFOAMWrapperApp initialized
+2026-06-04 18:20:21,068 - __main__ - INFO - Running application
+2026-06-04 18:20:38,196 - gui - INFO - new_case called
+2026-06-04 18:21:07,001 - gui - INFO - Creating new case at: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:21:07,002 - foam_utils - INFO - OpenFOAMCase initialized with case_dir: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:21:07,002 - foam_utils - DEBUG - Templates directory: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\ScriptOFA\openfoam_wrapper\templates
+2026-06-04 18:21:07,002 - foam_utils - INFO - Creating case structure in C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:21:07,003 - foam_utils - DEBUG - Created directory: 0
+2026-06-04 18:21:07,004 - foam_utils - DEBUG - Created directory: constant
+2026-06-04 18:21:07,004 - foam_utils - DEBUG - Created directory: system
+2026-06-04 18:21:07,005 - foam_utils - DEBUG - Created directory: constant/polyMesh
+2026-06-04 18:21:07,005 - foam_utils - INFO - Case structure created successfully
+2026-06-04 18:21:07,005 - gui - INFO - Case created successfully at: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:21:09,185 - gui - INFO - load_stl called
+2026-06-04 18:21:20,229 - gui - INFO - Loading STL file: C:/Users/esteb/Downloads/Calendrier de l'avent v5.stl
+2026-06-04 18:21:20,229 - mesh_utils - INFO - Loading STL file: C:\Users\esteb\Downloads\Calendrier de l'avent v5.stl
+2026-06-04 18:21:20,277 - mesh_utils - DEBUG - STL loaded, mesh has 4392 cells
+2026-06-04 18:21:20,278 - mesh_utils - INFO - Extracting surface and splitting bodies
+2026-06-04 18:21:20,394 - mesh_utils - INFO - Identified 36 patches
+2026-06-04 18:21:20,394 - mesh_utils - DEBUG - Initialized patch: patch_0
+2026-06-04 18:21:20,394 - mesh_utils - DEBUG - Initialized patch: patch_1
+2026-06-04 18:21:20,395 - mesh_utils - DEBUG - Initialized patch: patch_2
+2026-06-04 18:21:20,395 - mesh_utils - DEBUG - Initialized patch: patch_3
+2026-06-04 18:21:20,395 - mesh_utils - DEBUG - Initialized patch: patch_4
+2026-06-04 18:21:20,395 - mesh_utils - DEBUG - Initialized patch: patch_5
+2026-06-04 18:21:20,395 - mesh_utils - DEBUG - Initialized patch: patch_6
+2026-06-04 18:21:20,395 - mesh_utils - DEBUG - Initialized patch: patch_7
+2026-06-04 18:21:20,396 - mesh_utils - DEBUG - Initialized patch: patch_8
+2026-06-04 18:21:20,396 - mesh_utils - DEBUG - Initialized patch: patch_9
+2026-06-04 18:21:20,396 - mesh_utils - DEBUG - Initialized patch: patch_10
+2026-06-04 18:21:20,396 - mesh_utils - DEBUG - Initialized patch: patch_11
+2026-06-04 18:21:20,396 - mesh_utils - DEBUG - Initialized patch: patch_12
+2026-06-04 18:21:20,396 - mesh_utils - DEBUG - Initialized patch: patch_13
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_14
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_15
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_16
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_17
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_18
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_19
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_20
+2026-06-04 18:21:20,397 - mesh_utils - DEBUG - Initialized patch: patch_21
+2026-06-04 18:21:20,398 - mesh_utils - DEBUG - Initialized patch: patch_22
+2026-06-04 18:21:20,398 - mesh_utils - DEBUG - Initialized patch: patch_23
+2026-06-04 18:21:20,398 - mesh_utils - DEBUG - Initialized patch: patch_24
+2026-06-04 18:21:20,398 - mesh_utils - DEBUG - Initialized patch: patch_25
+2026-06-04 18:21:20,398 - mesh_utils - DEBUG - Initialized patch: patch_26
+2026-06-04 18:21:20,398 - mesh_utils - DEBUG - Initialized patch: patch_27
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_28
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_29
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_30
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_31
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_32
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_33
+2026-06-04 18:21:20,399 - mesh_utils - DEBUG - Initialized patch: patch_34
+2026-06-04 18:21:20,400 - mesh_utils - DEBUG - Initialized patch: patch_35
+2026-06-04 18:21:20,400 - mesh_utils - INFO - STL file processed successfully
+2026-06-04 18:21:20,400 - gui - INFO - STL loaded successfully: C:/Users/esteb/Downloads/Calendrier de l'avent v5.stl
+2026-06-04 18:21:20,401 - gui - DEBUG - Detected 36 patches
+2026-06-04 18:22:13,174 - __main__ - INFO - ================================================================================
+2026-06-04 18:22:13,174 - __main__ - INFO - OpenFOAM GUI Wrapper Started
+2026-06-04 18:22:13,174 - __main__ - INFO - ================================================================================
+2026-06-04 18:22:13,175 - __main__ - INFO - Log file: logs\foam_wrapper.log
+2026-06-04 18:22:13,175 - __main__ - INFO - Initializing QApplication
+2026-06-04 18:22:13,204 - __main__ - INFO - Creating main window
+2026-06-04 18:22:13,205 - gui - INFO - Initializing OpenFOAMWrapperApp
+2026-06-04 18:22:13,205 - mesh_utils - INFO - Initializing MeshManager
+2026-06-04 18:22:13,205 - mesh_utils - DEBUG - MeshManager initialized
+2026-06-04 18:22:13,622 - gui - INFO - OpenFOAMWrapperApp initialized
+2026-06-04 18:22:13,684 - __main__ - INFO - Running application
+2026-06-04 18:24:43,796 - __main__ - INFO - ================================================================================
+2026-06-04 18:24:43,796 - __main__ - INFO - OpenFOAM GUI Wrapper Started
+2026-06-04 18:24:43,796 - __main__ - INFO - ================================================================================
+2026-06-04 18:24:43,796 - __main__ - INFO - Log file: logs\foam_wrapper.log
+2026-06-04 18:24:43,796 - __main__ - INFO - Initializing QApplication
+2026-06-04 18:24:43,824 - __main__ - INFO - Creating main window
+2026-06-04 18:24:43,825 - gui - INFO - Initializing OpenFOAMWrapperApp
+2026-06-04 18:24:43,825 - mesh_utils - INFO - Initializing MeshManager
+2026-06-04 18:24:43,825 - mesh_utils - DEBUG - MeshManager initialized
+2026-06-04 18:24:44,311 - gui - INFO - OpenFOAMWrapperApp initialized
+2026-06-04 18:24:44,370 - __main__ - INFO - Running application
+2026-06-04 18:24:50,899 - gui - INFO - new_case called
+2026-06-04 18:24:53,467 - gui - INFO - new_case cancelled by user
+2026-06-04 18:24:54,817 - gui - INFO - new_case called
+2026-06-04 18:25:06,599 - gui - INFO - Creating new case at: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:25:06,600 - foam_utils - INFO - OpenFOAMCase initialized with case_dir: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:25:06,600 - foam_utils - DEBUG - Templates directory: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\ScriptOFA\openfoam_wrapper\templates
+2026-06-04 18:25:06,601 - foam_utils - INFO - Creating case structure in C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:25:06,601 - foam_utils - DEBUG - Created directory: 0
+2026-06-04 18:25:06,602 - foam_utils - DEBUG - Created directory: constant
+2026-06-04 18:25:06,602 - foam_utils - DEBUG - Created directory: system
+2026-06-04 18:25:06,603 - foam_utils - DEBUG - Created directory: constant/polyMesh
+2026-06-04 18:25:06,603 - foam_utils - INFO - Case structure created successfully
+2026-06-04 18:25:06,603 - gui - INFO - Case created successfully at: C:\Users\esteb\Desktop\Cours EPF Local\Apprendre pour stages\ScriptCFD\TestCase1
+2026-06-04 18:25:43,806 - gui - INFO - load_stl called
+2026-06-04 18:25:53,357 - gui - INFO - Loading STL file: C:/Users/esteb/Downloads/Calendrier de l'avent v5.stl
+2026-06-04 18:25:53,358 - mesh_utils - INFO - Loading STL file: C:\Users\esteb\Downloads\Calendrier de l'avent v5.stl
+2026-06-04 18:25:53,397 - mesh_utils - DEBUG - STL loaded, mesh has 4392 cells
+2026-06-04 18:25:53,398 - mesh_utils - INFO - Extracting surface and splitting bodies
+2026-06-04 18:25:53,523 - mesh_utils - INFO - Identified 36 patches
+2026-06-04 18:25:53,523 - mesh_utils - DEBUG - Initialized patch: patch_0
+2026-06-04 18:25:53,523 - mesh_utils - DEBUG - Initialized patch: patch_1
+2026-06-04 18:25:53,523 - mesh_utils - DEBUG - Initialized patch: patch_2
+2026-06-04 18:25:53,523 - mesh_utils - DEBUG - Initialized patch: patch_3
+2026-06-04 18:25:53,524 - mesh_utils - DEBUG - Initialized patch: patch_4
+2026-06-04 18:25:53,524 - mesh_utils - DEBUG - Initialized patch: patch_5
+2026-06-04 18:25:53,524 - mesh_utils - DEBUG - Initialized patch: patch_6
+2026-06-04 18:25:53,524 - mesh_utils - DEBUG - Initialized patch: patch_7
+2026-06-04 18:25:53,524 - mesh_utils - DEBUG - Initialized patch: patch_8
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_9
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_10
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_11
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_12
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_13
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_14
+2026-06-04 18:25:53,525 - mesh_utils - DEBUG - Initialized patch: patch_15
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_16
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_17
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_18
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_19
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_20
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_21
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_22
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_23
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_24
+2026-06-04 18:25:53,526 - mesh_utils - DEBUG - Initialized patch: patch_25
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_26
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_27
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_28
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_29
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_30
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_31
+2026-06-04 18:25:53,527 - mesh_utils - DEBUG - Initialized patch: patch_32
+2026-06-04 18:25:53,528 - mesh_utils - DEBUG - Initialized patch: patch_33
+2026-06-04 18:25:53,528 - mesh_utils - DEBUG - Initialized patch: patch_34
+2026-06-04 18:25:53,528 - mesh_utils - DEBUG - Initialized patch: patch_35
+2026-06-04 18:25:53,528 - mesh_utils - INFO - STL file processed successfully
+2026-06-04 18:25:53,528 - gui - INFO - STL loaded successfully: C:/Users/esteb/Downloads/Calendrier de l'avent v5.stl
+2026-06-04 18:25:53,529 - gui - DEBUG - Detected 36 patches
