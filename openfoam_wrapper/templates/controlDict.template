@@ -1,0 +1,36 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+
+application     #SOLVER#;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         #END_TIME#;
+
+deltaT          #DELTA_T#;
+
+writeControl    timeStep;
+
+writeInterval   #WRITE_INTERVAL#;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  6;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
