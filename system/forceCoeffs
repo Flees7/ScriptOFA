@@ -1,0 +1,60 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2512                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+forcePlaques
+{
+    type            forceCoeffs;
+    libs            (libsampling.so libforces.so);
+    writeControl    timeStep;
+    writeInterval   1;
+    log             yes;
+
+    patches         (plaque1);
+    rho             rhoInf;
+    rhoInf          1.225;
+
+    liftDir         (0 0 1);
+    dragDir         (1 0 0);
+    origin          (0 0 0);
+
+    coordinateRotation
+    {
+        type    axes;
+        e1      (1 0 0);
+        e2      (0 1 0);
+    }
+
+    magUInf         20;
+    lRef            1.0;  // Longueur de la plaque
+    Aref            0.5; // Surface totale (5m x 5m)
+}
+
+/*
+binField1
+{
+    type                    binField;
+    libs                    (fieldFunctionObjects);
+    binModel                singleDirectionUniformBin;
+    fields                  (forceCoeff);
+    patches                 (motorBikeGroup);
+    decomposePatchValues    true;
+    CofR                    ${../forceCoeffs1/CofR};
+
+    binData
+    {
+        nBin        20;          // output data into 20 bins
+        direction   (1 0 0);     // bin direction
+        cumulative  yes;
+    }
+    writeControl            timeStep;
+}
+*/
+
+
+// ************************************************************************* //
