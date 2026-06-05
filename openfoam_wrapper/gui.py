@@ -351,9 +351,6 @@ class OpenFOAMWrapperApp(QMainWindow):
         for actor in list(self.plotter.actors.values()):
             self.plotter.remove_actor(actor)
         
-        # Reset renderer if needed
-        self.plotter.renderer.clear_all()
-        
         # Add each patch with its assigned color and enable picking
         if self.mesh_manager.separated_surfaces:
             for i, patch in enumerate(self.mesh_manager.separated_surfaces):
