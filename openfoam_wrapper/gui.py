@@ -110,6 +110,8 @@ class OpenFOAMWrapperApp(QMainWindow):
         
         # Initialize managers
         self.mesh_manager = MeshManager()
+        self.loaded_meshes = []  # List to hold multiple loaded mesh managers
+        self.patch_to_mesh = {}  # Maps global patch names to mesh managers and local patch indices
         self.case = None
         self.case_dir = None
         self.solver_thread = None
@@ -184,6 +186,58 @@ class OpenFOAMWrapperApp(QMainWindow):
         
         stl_group.setLayout(stl_layout)
         layout.addWidget(stl_group)
+        
+        # Domain Configuration Group
+        domain_group = QGroupBox("Domain Configuration")
+        domain_layout = QFormLayout()
+        
+        # Domain center coordinates
+        self.domain_center_x_spin = QDoubleSpinBox()
+        self.domain_center_x_spin.setValue(0)
+        self.domain_center_x_spin.setMinimum(-1e6)
+        self.domain_center_x_spin.setMaximum(1e6)
+        domain_layout.addRow("Center X (m):", self.domain_center_x_spin)
+        
+        self.domain_center_y_spin = QDoubleSpinBox()
+        self.domain_center_y_spin.setValue(0)
+        self.domain_center_y_spin.setMinimum(-1e6)
+        self.domain_center_y_spin.setMaximum(1e6)
+        domain_layout.addRow("Center Y (m):", self.domain_center_y_spin)
+        
+        self.domain_center_z_spin = QDoubleSpinBox()
+        self.domain_center_z_spin.setValue(0)
+        self.domain_center_z_spin.setMinimum(-1e6)
+        self.domain_center_z_spin.setMaximum(1e6)
+        domain_layout.addRow("Center Z (m):", self.domain_center_z_spin)
+        
+        # Domain dimensions
+        self.domain_x_spin = QDoubleSpinBox()
+        self.domain_x_spin.setValue(10)
+        self.domain_x_spin.setMaximum(1e6)
+        domain_layout.addRow("Domain X (m):", self.domain_x_spin)
+        
+        self.domain_y_spin = QDoubleSpinBox()
+        self.domain_y_spin.setValue(10)
+        self.domain_y_spin.setMaximum(1e6)
+        domain_layout.addRow("Domain Y (m):", self.domain_y_spin)
+        
+        self.domain_z_spin = QDoubleSpinBox()
+        self.domain_z_spin.setValue(10)
+        self.domain_z_spin.setMaximum(1e6)
+        domain_layout.addRow("Domain Z (m):", self.domain_z_spin)
+        
+        # Auto button
+        auto_btn = QPushButton("Auto")
+        auto_btn.clicked.connect(self.auto_domain)
+        domain_layout.addRow("", auto_btn)
+        
+        # Update button
+        update_btn = QPushButton("Update Visualization")
+        update_btn.clicked.connect(self.visualize_mesh)
+        domain_layout.addRow("", update_btn)
+        
+        domain_group.setLayout(domain_layout)
+        layout.addWidget(domain_group)
         
         # Simulation Configuration Group
         sim_group = QGroupBox("Simulation Parameters")
@@ -274,12 +328,18 @@ class OpenFOAMWrapperApp(QMainWindow):
         layout = QVBoxLayout()
         
         # Info label
-        info_label = QLabel("Click on patches to assign boundary conditions")
+        info_label = QLabel("Use mouse to rotate, scroll to zoom")
         layout.addWidget(info_label)
         
         # PyVista visualizer
         self.plotter = QtInteractor(panel)
         layout.addWidget(self.plotter.interactor)
+        
+        # Add axes to show orientation (wrapped in try-catch)
+        try:
+            self.plotter.add_axes(viewport=(0.0, 0.0, 0.2, 0.2))
+        except Exception as e:
+            logger.warning(f"Could not add axes: {e}")
         
         panel.setLayout(layout)
         return panel
@@ -329,15 +389,21 @@ class OpenFOAMWrapperApp(QMainWindow):
             return
         
         logger.info(f"Loading STL file: {file_path}")
+        # Create new mesh manager for this STL
+        mesh_mgr = MeshManager()
+        
         # Load mesh
-        if self.mesh_manager.load_stl(Path(file_path)):
+        if mesh_mgr.load_stl(Path(file_path)):
             logger.info(f"STL loaded successfully: {file_path}")
             self.log_output(f"STL loaded: {file_path}")
             
+            # Add to loaded meshes list
+            self.loaded_meshes.append(mesh_mgr)
+            
             # Update patches display
-            patches = self.mesh_manager.get_patches()
-            logger.debug(f"Detected {len(patches)} patches")
-            self.patches_label.setText(f"{len(patches)} patches detected")
+            total_patches = sum(len(m.get_patches()) for m in self.loaded_meshes)
+            logger.debug(f"Total patches across all meshes: {total_patches}")
+            self.patches_label.setText(f"{total_patches} patches detected across {len(self.loaded_meshes)} STL(s)")
             
             # Visualize
             self.visualize_mesh()
@@ -347,47 +413,88 @@ class OpenFOAMWrapperApp(QMainWindow):
     
     def visualize_mesh(self):
         """Visualize the mesh in PyVista."""
-        # Remove all previous actors from the plotter
-        for actor in list(self.plotter.actors.values()):
-            self.plotter.remove_actor(actor)
-        
-        # Add each patch with its assigned color and enable picking
-        if self.mesh_manager.separated_surfaces:
-            for i, patch in enumerate(self.mesh_manager.separated_surfaces):
-                patch_name = f"patch_{i}"
-                color = self.mesh_manager.patch_colors.get(patch_name, (0.5, 0.5, 0.5))
-                
-                self.plotter.add_mesh(
-                    patch,
-                    color=color,
-                    name=patch_name,
-                    show_edges=True,
-                    opacity=0.9
-                )
+        try:
+            # Check if any mesh is loaded
+            if not self.loaded_meshes:
+                return
             
-            # Setup picking callback for all patches
-            self.plotter.track_click_position(
-                callback=self.mesh_manager._handle_pick(self.on_patch_picked, self.plotter),
-                side="left"
+            # Remove all previous actors from the plotter
+            try:
+                for actor in list(self.plotter.actors.values()):
+                    self.plotter.remove_actor(actor)
+            except:
+                pass
+            
+            # Clear patch mapping
+            self.patch_to_mesh = {}
+            
+            # Add domain box
+            domain_box = self.mesh_manager.create_domain_box(
+                self.domain_x_spin.value(),
+                self.domain_y_spin.value(),
+                self.domain_z_spin.value(),
+                self.domain_center_x_spin.value(),
+                self.domain_center_y_spin.value(),
+                self.domain_center_z_spin.value()
             )
-        
-        self.plotter.view_isometric()
-        self.plotter.reset_camera()
-        self.plotter.render()
+            self.plotter.add_mesh(
+                domain_box,
+                color=(0.2, 0.8, 0.2),
+                name="domain",
+                show_edges=True,
+                opacity=0.3
+            )
+            
+            # Add patches from all loaded meshes
+            patch_counter = 0
+            for mesh_idx, mesh_mgr in enumerate(self.loaded_meshes):
+                if mesh_mgr.separated_surfaces:
+                    for i, patch in enumerate(mesh_mgr.separated_surfaces):
+                        patch_name = f"patch_{patch_counter}"
+                        # Map global patch name to mesh manager and local patch index
+                        self.patch_to_mesh[patch_name] = (mesh_mgr, f"patch_{i}")
+                        
+                        color = mesh_mgr.patch_colors.get(f"patch_{i}", (0.5, 0.5, 0.5))
+                        
+                        self.plotter.add_mesh(
+                            patch,
+                            color=color,
+                            name=patch_name,
+                            show_edges=True,
+                            opacity=0.9
+                        )
+                        patch_counter += 1
+            
+            self.plotter.view_isometric()
+            self.plotter.reset_camera()
+            self.plotter.render()
+        except Exception as e:
+            logger.error(f"Error in visualize_mesh: {e}")
+            print(f"Visualization error: {e}")
     
     def on_patch_picked(self, patch_name: str, coordinates):
         """Handle patch selection."""
+        # Get the mesh manager and local patch name for this global patch name
+        if patch_name not in self.patch_to_mesh:
+            return
+        
+        mesh_mgr, local_patch_name = self.patch_to_mesh[patch_name]
+        
         # Show BC assignment dialog
         dialog = BoundaryConditionDialog(patch_name, self)
         selected_bc = dialog.get_selected_bc()
         
         if selected_bc:
-            # Assign BC
-            self.mesh_manager.assign_patch(patch_name, selected_bc)
+            # Assign BC to the correct mesh manager
+            mesh_mgr.assign_patch(local_patch_name, selected_bc)
             self.log_output(f"Assigned {patch_name} -> {selected_bc}")
             
             # Update visualization
             self.visualize_mesh()
+    
+    def auto_domain(self):
+        """Auto calculate domain dimensions."""
+        pass
     
     def generate_case(self):
         """Generate OpenFOAM dictionaries."""
@@ -412,8 +519,10 @@ class OpenFOAMWrapperApp(QMainWindow):
         }
         logger.debug(f"Configuration: {config}")
         
-        # Get patch assignments
-        patch_info = self.mesh_manager.export_patch_info()
+        # Get patch assignments from all loaded meshes
+        patch_info = {}
+        for mesh_mgr in self.loaded_meshes:
+            patch_info.update(mesh_mgr.export_patch_info())
         logger.debug(f"Patch info: {patch_info}")
         
         if not patch_info:

@@ -157,13 +157,17 @@ class MeshManager:
             Handler function for click events
         """
         def pick_handler(click_pos):
-            """Handle mesh picking with ray casting."""
+            """Handle mesh picking."""
             if self.separated_surfaces is None:
                 return
             
             try:
-                # Get picked actor from the plotter renderer
-                picked_actor = plotter.renderer.pick_prop(click_pos[0], click_pos[1])
+                # Try to get picked actor, but handle cases where method doesn't exist
+                picked_actor = None
+                if hasattr(plotter.renderer, 'pick_actor'):
+                    picked_actor = plotter.renderer.pick_actor(click_pos[0], click_pos[1])
+                elif hasattr(plotter.renderer, 'pick_prop'):
+                    picked_actor = plotter.renderer.pick_prop(click_pos[0], click_pos[1])
                 
                 if picked_actor is None:
                     return
@@ -172,8 +176,8 @@ class MeshManager:
                 for i, patch in enumerate(self.separated_surfaces):
                     patch_name = f"patch_{i}"
                     # Check if this patch's actor matches the picked actor
-                    if patch_name in plotter.renderer.actors:
-                        actor = plotter.renderer.actors[patch_name]
+                    if patch_name in plotter.actors:
+                        actor = plotter.actors[patch_name]
                         if actor == picked_actor:
                             callback(patch_name, click_pos)
                             break
@@ -207,3 +211,28 @@ class MeshManager:
             for name, assignment in self.patch_assignments.items()
             if assignment != "unassigned"
         }
+    
+    def create_domain_box(self, x: float, y: float, z: float, center_x: float = 0, center_y: float = 0, center_z: float = 0):
+        """
+        Create a domain box with given dimensions centered at specified coordinates.
+        
+        Args:
+            x: Width in X direction
+            y: Width in Y direction
+            z: Width in Z direction
+            center_x: X coordinate of box center
+            center_y: Y coordinate of box center
+            center_z: Z coordinate of box center
+            
+        Returns:
+            PyVista Box object
+        """
+        x_min = center_x - x / 2
+        x_max = center_x + x / 2
+        y_min = center_y - y / 2
+        y_max = center_y + y / 2
+        z_min = center_z - z / 2
+        z_max = center_z + z / 2
+        
+        box = pv.Box(bounds=[x_min, x_max, y_min, y_max, z_min, z_max])
+        return box
